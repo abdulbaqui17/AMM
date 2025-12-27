@@ -1,0 +1,24 @@
+# Anchor
+.anchor
+target/
+test-ledger/
+
+# Node
+node_modules/
+*.log
+
+# Build artifacts
+*.so
+*.wasm
+
+# IDL
+target/idl/
+target/types/
+
+# OS
+.DS_Store
+
+# Lock files (keep yarn.lock, ignore others)
+package-lock.json
+bun.lockb
+
