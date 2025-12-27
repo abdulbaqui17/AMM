@@ -73,7 +73,7 @@ export function AddLiquidity({
 
       // Call add_liquidity instruction
       const tx = await program.methods
-        .addLiquidity(amountABN, amountBBN)
+        .addLiquidity(amountABN, amountBBN, new BN(0)) // min_lp_tokens = 0 for now
         .accounts({
           user: publicKey,
           pool: poolPda,
