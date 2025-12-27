@@ -12,6 +12,8 @@
 target/** linguist-generated=true
 node_modules/** linguist-vendored=true
 tests/** linguist-documentation=true
+frontend/** linguist-documentation=true
+scripts/** linguist-documentation=true
 *.lock linguist-generated=true
 Cargo.lock linguist-generated=false
 
