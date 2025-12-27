@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import Link from "next/link";
 import { WalletButton } from "./components/WalletButton";
 import { useAmmProgram, PROGRAM_ID } from "@/lib";
 
@@ -104,6 +105,14 @@ export default function Home() {
                     </div>
                   )}
                   <div className="flex justify-center gap-4">
+                    <Link
+                      href="/pool"
+                      className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      View Pool Info
+                    </Link>
+                  </div>
+                  <div className="flex justify-center gap-4 mt-4">
                     <div className="px-6 py-3 bg-gray-100 rounded-lg">
                       <span className="text-sm text-gray-500">Status</span>
                       <p className="text-lg font-semibold text-green-600">
