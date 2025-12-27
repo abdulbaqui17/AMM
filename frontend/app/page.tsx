@@ -1,10 +1,17 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { WalletButton } from "./components/WalletButton";
 
 export default function Home() {
   const { publicKey, connected } = useWallet();
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch by only rendering wallet-dependent content after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
@@ -15,13 +22,13 @@ export default function Home() {
             <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg"></div>
             <span className="text-xl font-bold text-gray-900">Solana AMM</span>
           </div>
-          <WalletMultiButton />
+          <WalletButton />
         </div>
       </header>
 
       <div className="container mx-auto px-4 py-16">
         {/* Connection Status Banner */}
-        {connected && (
+        {mounted && connected && (
           <div className="mb-8 max-w-4xl mx-auto">
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -76,7 +83,7 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              {connected ? (
+              {mounted && connected ? (
                 <>
                   <h2 className="text-3xl font-bold text-gray-900 mb-4">
                     Wallet Connected!
