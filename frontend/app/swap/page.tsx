@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Swap } from "../../components/Swap";
-import { PoolInfo } from "../../components/PoolInfo";
+import { Swap } from "../components/Swap";
+import { PoolInfo } from "../components/PoolInfo";
 
 export default function SwapPage() {
   const [tokenMintA, setTokenMintA] = useState("");
