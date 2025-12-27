@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletButton } from "./components/WalletButton";
+import { useAmmProgram, PROGRAM_ID } from "@/lib";
 
 export default function Home() {
   const { publicKey, connected } = useWallet();
+  const program = useAmmProgram();
   const [mounted, setMounted] = useState(false);
 
   // Prevent hydration mismatch by only rendering wallet-dependent content after mount
@@ -88,9 +90,19 @@ export default function Home() {
                   <h2 className="text-3xl font-bold text-gray-900 mb-4">
                     Wallet Connected!
                   </h2>
-                  <p className="text-gray-600 max-w-md mx-auto mb-8">
+                  <p className="text-gray-600 max-w-md mx-auto mb-4">
                     Your wallet is connected to the Solana localnet. Ready to interact with the AMM.
                   </p>
+                  {program && (
+                    <div className="mb-6 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                      <p className="text-xs font-semibold text-purple-900 mb-1">
+                        AMM Program Loaded
+                      </p>
+                      <p className="text-xs text-purple-700 font-mono">
+                        {PROGRAM_ID.toBase58()}
+                      </p>
+                    </div>
+                  )}
                   <div className="flex justify-center gap-4">
                     <div className="px-6 py-3 bg-gray-100 rounded-lg">
                       <span className="text-sm text-gray-500">Status</span>
