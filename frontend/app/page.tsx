@@ -104,12 +104,18 @@ export default function Home() {
                       </p>
                     </div>
                   )}
-                  <div className="flex justify-center gap-4">
+                  <div className="flex flex-col sm:flex-row justify-center gap-4">
                     <Link
                       href="/pool"
-                      className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
+                      className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors text-center"
                     >
                       View Pool Info
+                    </Link>
+                    <Link
+                      href="/liquidity/add"
+                      className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors text-center"
+                    >
+                      Add Liquidity
                     </Link>
                   </div>
                   <div className="flex justify-center gap-4 mt-4">
