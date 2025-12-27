@@ -16,6 +16,7 @@ wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/amm-anchor.test.ts"
+initialize-pool = "ts-node scripts/initialize-pool.ts"
 
 [workspace]
 members = [
