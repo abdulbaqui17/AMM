@@ -99,7 +99,16 @@ export function Swap({ tokenMintA, tokenMintB }: SwapProps) {
       setMinAmountOut("");
     } catch (err: any) {
       console.error("Error swapping:", err);
-      setError(err.message || "Failed to swap");
+      
+      // Check for slippage error
+      if (err.message?.includes("SlippageExceeded") || err.message?.includes("6004")) {
+        setError(
+          `Slippage tolerance exceeded! The minimum output you set (${minAmountOut || '0'}) is higher than what the pool can provide. ` +
+          `Try: (1) Leave minimum output empty, or (2) Set a lower minimum amount, or (3) Reduce your swap amount.`
+        );
+      } else {
+        setError(err.message || "Failed to swap");
+      }
     } finally {
       setLoading(false);
     }
@@ -236,12 +245,12 @@ export function Swap({ tokenMintA, tokenMintB }: SwapProps) {
             type="number"
             value={minAmountOut}
             onChange={(e) => setMinAmountOut(e.target.value)}
-            placeholder="0.0 (minimum)"
+            placeholder="0 (leave empty to accept any amount)"
             disabled={loading}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <p className="text-xs text-gray-500 mt-1">
-            Minimum amount to receive (slippage protection)
+            Minimum amount to receive - leave empty to disable slippage protection
           </p>
         </div>
 
@@ -285,10 +294,17 @@ export function Swap({ tokenMintA, tokenMintB }: SwapProps) {
 
       {/* Info Box */}
       <div className="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-        <p className="text-xs text-purple-800">
-          <strong>Note:</strong> The swap will execute at the current pool
-          ratio with a 0.3% fee. Set a minimum output amount to protect against
-          slippage.
+        <p className="text-xs text-purple-800 mb-2">
+          <strong>💡 How to use minimum output:</strong>
+        </p>
+        <ul className="text-xs text-purple-700 space-y-1 ml-4">
+          <li>• <strong>Leave empty (0)</strong> - Accept any output (recommended for testing)</li>
+          <li>• <strong>Set a value</strong> - Transaction fails if output is less than this</li>
+          <li>• <strong>Slippage protection</strong> - Protects you from unfavorable price changes</li>
+        </ul>
+        <p className="text-xs text-purple-800 mt-2">
+          <strong>Note:</strong> The swap executes at the current pool ratio with a 0.3% fee.
+          Large swaps have higher price impact.
         </p>
       </div>
     </div>
