@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { AddLiquidity } from "../components/AddLiquidity";
-import { PoolInfo } from "../components/PoolInfo";
+import { AddLiquidity } from "../../components/AddLiquidity";
+import { PoolInfo } from "../../components/PoolInfo";
 
 export default function AddLiquidityPage() {
   const [tokenMintA, setTokenMintA] = useState("");
