@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  transpilePackages: ['@coral-xyz/anchor', '@solana/web3.js'],
 };
 
 export default nextConfig;
