@@ -1,0 +1,17 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Rust
+*.rs linguist-language=Rust
+*.toml linguist-language=TOML
+
+# TypeScript
+*.ts linguist-language=TypeScript
+
+# Ignore generated files and dependencies from language statistics
+target/** linguist-generated=true
+node_modules/** linguist-vendored=true
+tests/** linguist-documentation=true
+*.lock linguist-generated=true
+Cargo.lock linguist-generated=false
+
