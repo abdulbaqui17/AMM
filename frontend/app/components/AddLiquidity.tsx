@@ -77,15 +77,15 @@ export function AddLiquidity({
         .accounts({
           user: publicKey,
           pool: poolPda,
-          token_mint_a: mintAPubkey,
-          token_mint_b: mintBPubkey,
-          vault_a: poolAccount.vaultA,
-          vault_b: poolAccount.vaultB,
-          lp_mint: poolAccount.lpMint,
-          user_token_a: userTokenA,
-          user_token_b: userTokenB,
-          user_lp: userLp,
-          token_program: new PublicKey(
+          tokenMintA: mintAPubkey,
+          tokenMintB: mintBPubkey,
+          vaultA: poolAccount.vaultA,
+          vaultB: poolAccount.vaultB,
+          lpMint: poolAccount.lpMint,
+          userTokenA: userTokenA,
+          userTokenB: userTokenB,
+          userLp: userLp,
+          tokenProgram: new PublicKey(
             "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
           ),
         })
