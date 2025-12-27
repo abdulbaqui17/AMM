@@ -38,7 +38,7 @@ export default function Home() {
                 <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                 <div>
                   <p className="text-sm font-medium text-green-900">
-                    Connected to Localnet
+                    Connected to Devnet
                   </p>
                   <p className="text-xs text-green-700 font-mono">
                     {publicKey?.toBase58()}
@@ -92,7 +92,7 @@ export default function Home() {
                     Wallet Connected!
                   </h2>
                   <p className="text-gray-600 max-w-md mx-auto mb-4">
-                    Your wallet is connected to the Solana localnet. Ready to interact with the AMM.
+                    Your wallet is connected to Solana devnet. Ready to interact with the AMM.
                   </p>
                   {program && (
                     <div className="mb-6 p-3 bg-purple-50 border border-purple-200 rounded-lg">
@@ -128,7 +128,7 @@ export default function Home() {
                     <div className="px-6 py-3 bg-gray-100 rounded-lg">
                       <span className="text-sm text-gray-500">Network</span>
                       <p className="text-lg font-semibold text-gray-900">
-                        Localnet
+                        Devnet
                       </p>
                     </div>
                     <div className="px-6 py-3 bg-gray-100 rounded-lg">
@@ -157,7 +157,7 @@ export default function Home() {
                     <div className="px-6 py-3 bg-gray-100 rounded-lg">
                       <span className="text-sm text-gray-500">Network</span>
                       <p className="text-lg font-semibold text-gray-900">
-                        Localnet
+                        Devnet
                       </p>
                     </div>
                     <div className="px-6 py-3 bg-gray-100 rounded-lg">

@@ -144,7 +144,7 @@ export function AddLiquidity({
                 {txSignature}
               </p>
               <a
-                href={`https://explorer.solana.com/tx/${txSignature}?cluster=custom&customUrl=http://127.0.0.1:8899`}
+                href={`https://explorer.solana.com/tx/${txSignature}?cluster=devnet`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-green-600 hover:text-green-800 underline mt-2 inline-block"

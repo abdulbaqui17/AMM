@@ -16,12 +16,12 @@ import "@solana/wallet-adapter-react-ui/styles.css";
 export const WalletContextProvider: FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  // Use localnet for development
+  // Use devnet for development
   const network = WalletAdapterNetwork.Devnet;
   const endpoint = useMemo(() => {
-    // Use localnet RPC endpoint
-    return "http://127.0.0.1:8899";
-  }, []);
+    // Use devnet RPC endpoint
+    return clusterApiUrl(network);
+  }, [network]);
 
   // Initialize wallets (Phantom)
   const wallets = useMemo(
