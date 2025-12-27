@@ -118,6 +118,12 @@ export default function Home() {
                       Add Liquidity
                     </Link>
                     <Link
+                      href="/liquidity/remove"
+                      className="px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors text-center"
+                    >
+                      Remove Liquidity
+                    </Link>
+                    <Link
                       href="/pool"
                       className="px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 transition-colors text-center"
                     >
@@ -179,8 +185,8 @@ export default function Home() {
           </div>
 
           {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-6 mt-8">
-            <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+          <div className="grid md:grid-cols-4 gap-6 mt-8">
+            <Link href="/swap" className="bg-white rounded-xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                 <svg
                   className="w-6 h-6 text-blue-600"
@@ -202,9 +208,9 @@ export default function Home() {
               <p className="text-gray-600 text-sm">
                 Exchange tokens instantly with minimal slippage
               </p>
-            </div>
+            </Link>
 
-            <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+            <Link href="/liquidity/add" className="bg-white rounded-xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
                 <svg
                   className="w-6 h-6 text-purple-600"
@@ -216,22 +222,22 @@ export default function Home() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                   />
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Provide Liquidity
+                Add Liquidity
               </h3>
               <p className="text-gray-600 text-sm">
                 Earn fees by providing liquidity to pools
               </p>
-            </div>
+            </Link>
 
-            <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+            <Link href="/liquidity/remove" className="bg-white rounded-xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
                 <svg
-                  className="w-6 h-6 text-green-600"
+                  className="w-6 h-6 text-red-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -240,17 +246,41 @@ export default function Home() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                    d="M20 12H4"
                   />
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Secure & Audited
+                Remove Liquidity
               </h3>
               <p className="text-gray-600 text-sm">
-                Built with security best practices on Solana
+                Withdraw your tokens and collected fees
               </p>
-            </div>
+            </Link>
+
+            <Link href="/pool" className="bg-white rounded-xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
+                <svg
+                  className="w-6 h-6 text-gray-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                View Pool Info
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Check details of existing AMM pools
+              </p>
+            </Link>
           </div>
         </div>
         </div>
