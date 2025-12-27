@@ -80,7 +80,7 @@ export function Swap({ tokenMintA, tokenMintB }: SwapProps) {
       // Call swap instruction
       const tx = await program.methods
         .swap(amountInBN, minAmountOutBN)
-        .accounts({
+        .accountsPartial({
           user: publicKey,
           pool: poolPda,
           tokenMintA: mintAPubkey,

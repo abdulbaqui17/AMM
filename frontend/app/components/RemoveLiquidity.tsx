@@ -134,7 +134,7 @@ export function RemoveLiquidity({
       // Call remove_liquidity instruction
       const tx = await program.methods
         .removeLiquidity(lpAmountBN)
-        .accounts({
+        .accountsPartial({
           user: publicKey,
           pool: poolPda,
           tokenMintA: mintAPubkey,

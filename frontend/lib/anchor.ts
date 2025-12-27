@@ -1,13 +1,14 @@
-import { Program, AnchorProvider, Idl } from "@coral-xyz/anchor";
+import { Program, AnchorProvider } from "@coral-xyz/anchor";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
+import { Amm } from "./amm";
 import idl from "./amm.json";
 
 // Program ID from IDL
 export const PROGRAM_ID = new PublicKey(idl.address);
 
 // AMM Program type
-export type AmmProgram = Program<Idl>;
+export type AmmProgram = Program<Amm>;
 
 /**
  * Get Anchor provider with wallet and connection
@@ -30,8 +31,8 @@ export function getAmmProgram(
   wallet: AnchorWallet
 ): AmmProgram {
   const provider = getProvider(connection, wallet);
-  const program = new Program(idl as Idl, provider);
-  return program as AmmProgram;
+  const program = new Program(idl as unknown as Amm, provider);
+  return program as unknown as AmmProgram;
 }
 
 /**
