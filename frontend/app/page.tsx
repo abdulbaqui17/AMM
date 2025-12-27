@@ -1,7 +1,49 @@
+"use client";
+
+import { useWallet } from "@solana/wallet-adapter-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+
 export default function Home() {
+  const { publicKey, connected } = useWallet();
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+      {/* Header with Wallet Button */}
+      <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg"></div>
+            <span className="text-xl font-bold text-gray-900">Solana AMM</span>
+          </div>
+          <WalletMultiButton />
+        </div>
+      </header>
+
       <div className="container mx-auto px-4 py-16">
+        {/* Connection Status Banner */}
+        {connected && (
+          <div className="mb-8 max-w-4xl mx-auto">
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                <div>
+                  <p className="text-sm font-medium text-green-900">
+                    Connected to Localnet
+                  </p>
+                  <p className="text-xs text-green-700 font-mono">
+                    {publicKey?.toBase58()}
+                  </p>
+                </div>
+              </div>
+              <div className="px-3 py-1 bg-green-100 rounded-full">
+                <span className="text-xs font-semibold text-green-700">
+                  ACTIVE
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
@@ -34,26 +76,65 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Frontend Coming Soon
-              </h2>
-              <p className="text-gray-600 max-w-md mx-auto mb-8">
-                Connect your wallet to start swapping tokens and providing liquidity on Solana's fastest AMM.
-              </p>
-              <div className="flex justify-center gap-4">
-                <div className="px-6 py-3 bg-gray-100 rounded-lg">
-                  <span className="text-sm text-gray-500">Status</span>
-                  <p className="text-lg font-semibold text-gray-900">Ready</p>
-                </div>
-                <div className="px-6 py-3 bg-gray-100 rounded-lg">
-                  <span className="text-sm text-gray-500">Network</span>
-                  <p className="text-lg font-semibold text-gray-900">Solana</p>
-                </div>
-                <div className="px-6 py-3 bg-gray-100 rounded-lg">
-                  <span className="text-sm text-gray-500">Fee</span>
-                  <p className="text-lg font-semibold text-gray-900">0.3%</p>
-                </div>
-              </div>
+              {connected ? (
+                <>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                    Wallet Connected!
+                  </h2>
+                  <p className="text-gray-600 max-w-md mx-auto mb-8">
+                    Your wallet is connected to the Solana localnet. Ready to interact with the AMM.
+                  </p>
+                  <div className="flex justify-center gap-4">
+                    <div className="px-6 py-3 bg-gray-100 rounded-lg">
+                      <span className="text-sm text-gray-500">Status</span>
+                      <p className="text-lg font-semibold text-green-600">
+                        Connected
+                      </p>
+                    </div>
+                    <div className="px-6 py-3 bg-gray-100 rounded-lg">
+                      <span className="text-sm text-gray-500">Network</span>
+                      <p className="text-lg font-semibold text-gray-900">
+                        Localnet
+                      </p>
+                    </div>
+                    <div className="px-6 py-3 bg-gray-100 rounded-lg">
+                      <span className="text-sm text-gray-500">Fee</span>
+                      <p className="text-lg font-semibold text-gray-900">
+                        0.3%
+                      </p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                    Connect Your Wallet
+                  </h2>
+                  <p className="text-gray-600 max-w-md mx-auto mb-8">
+                    Connect your Phantom wallet to start swapping tokens and providing liquidity on Solana's fastest AMM.
+                  </p>
+                  <div className="flex justify-center gap-4">
+                    <div className="px-6 py-3 bg-gray-100 rounded-lg">
+                      <span className="text-sm text-gray-500">Status</span>
+                      <p className="text-lg font-semibold text-gray-900">
+                        Ready
+                      </p>
+                    </div>
+                    <div className="px-6 py-3 bg-gray-100 rounded-lg">
+                      <span className="text-sm text-gray-500">Network</span>
+                      <p className="text-lg font-semibold text-gray-900">
+                        Localnet
+                      </p>
+                    </div>
+                    <div className="px-6 py-3 bg-gray-100 rounded-lg">
+                      <span className="text-sm text-gray-500">Fee</span>
+                      <p className="text-lg font-semibold text-gray-900">
+                        0.3%
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -75,7 +156,9 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Swap Tokens</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Swap Tokens
+              </h3>
               <p className="text-gray-600 text-sm">
                 Exchange tokens instantly with minimal slippage
               </p>
@@ -97,7 +180,9 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Provide Liquidity</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Provide Liquidity
+              </h3>
               <p className="text-gray-600 text-sm">
                 Earn fees by providing liquidity to pools
               </p>
@@ -119,7 +204,9 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Secure & Audited</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Secure & Audited
+              </h3>
               <p className="text-gray-600 text-sm">
                 Built with security best practices on Solana
               </p>
