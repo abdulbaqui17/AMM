@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { PublicKey } from "@solana/web3.js";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { getAssociatedTokenAddress } from "@solana/spl-token";
+import { PublicKey, Transaction } from "@solana/web3.js";
+import { useWallet, useConnection } from "@solana/wallet-adapter-react";
+import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { useAmmProgram, getPoolAddress } from "@/lib";
 import { BN } from "@coral-xyz/anchor";
 
@@ -18,7 +18,8 @@ export function AddLiquidity({
   tokenMintB,
   poolAddress,
 }: AddLiquidityProps) {
-  const { publicKey } = useWallet();
+  const { publicKey, signTransaction } = useWallet();
+  const { connection } = useConnection();
   const program = useAmmProgram();
 
   const [amountA, setAmountA] = useState("");
@@ -70,6 +71,40 @@ export function AddLiquidity({
         poolAccount.lpMint,
         publicKey
       );
+
+      // Check if LP token account exists, if not create it
+      const lpAccountInfo = await connection.getAccountInfo(userLp);
+      if (!lpAccountInfo) {
+        console.log("Creating LP token account...");
+        if (!signTransaction) {
+          throw new Error("Wallet does not support signing");
+        }
+        
+        const createAtaIx = createAssociatedTokenAccountInstruction(
+          publicKey,
+          userLp,
+          publicKey,
+          poolAccount.lpMint,
+          TOKEN_PROGRAM_ID
+        );
+        
+        // Send transaction to create ATA
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+        const createAtaTx = new Transaction({
+          feePayer: publicKey,
+          blockhash,
+          lastValidBlockHeight,
+        }).add(createAtaIx);
+        
+        const signed = await signTransaction(createAtaTx);
+        const createAtaSig = await connection.sendRawTransaction(signed.serialize());
+        await connection.confirmTransaction({
+          signature: createAtaSig,
+          blockhash,
+          lastValidBlockHeight,
+        });
+        console.log("LP token account created:", createAtaSig);
+      }
 
       // Call add_liquidity instruction
       const tx = await program.methods
