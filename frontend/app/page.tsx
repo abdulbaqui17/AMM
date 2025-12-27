@@ -106,16 +106,22 @@ export default function Home() {
                   )}
                   <div className="flex flex-col sm:flex-row justify-center gap-4">
                     <Link
-                      href="/pool"
-                      className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors text-center"
+                      href="/swap"
+                      className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors text-center"
                     >
-                      View Pool Info
+                      Swap Tokens
                     </Link>
                     <Link
                       href="/liquidity/add"
-                      className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors text-center"
+                      className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors text-center"
                     >
                       Add Liquidity
+                    </Link>
+                    <Link
+                      href="/pool"
+                      className="px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 transition-colors text-center"
+                    >
+                      View Pool Info
                     </Link>
                   </div>
                   <div className="flex justify-center gap-4 mt-4">
