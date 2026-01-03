@@ -28,7 +28,9 @@ pub fn swap(
         return Err(AmmError::InvalidVault.into());
     };
     
-    require!(reserve_in > 0 && reserve_out > 0, AmmError::InsufficientLiquidity);
+    // Pool readiness: ensure both reserves have liquidity before allowing swaps
+    // This prevents swaps on newly created pools or pools with zero reserves
+    require!(reserve_in > 0 && reserve_out > 0, AmmError::PoolNotReady);
     
     // Calculate output amount with fee
     let amount_out = get_amount_out(
