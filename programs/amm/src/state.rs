@@ -24,3 +24,17 @@ impl Pool {
     pub const LEN: usize = 8 + 32 + 32 + 32 + 32 + 32 + 2 + 1;
 }
 
+/// Global config account holding admin authority
+#[account]
+pub struct Config {
+    /// Admin authority for protocol governance
+    pub admin: Pubkey,
+    /// PDA bump seed
+    pub bump: u8,
+}
+
+impl Config {
+    /// Space required for the Config account
+    pub const LEN: usize = 8 + 32 + 1;
+}
+

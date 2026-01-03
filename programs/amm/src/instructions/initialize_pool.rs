@@ -1,10 +1,16 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use anchor_lang::solana_program::program_option::COption;
-use crate::state::Pool;
+use crate::state::{Pool, Config};
 use crate::error::AmmError;
 
 pub fn initialize_pool(ctx: Context<InitializePool>) -> Result<()> {
+    // Only admin can create pools
+    require!(
+        ctx.accounts.payer.key() == ctx.accounts.config.admin,
+        AmmError::Unauthorized
+    );
+    
     let pool = &mut ctx.accounts.pool;
     
     require!(
@@ -33,6 +39,14 @@ pub struct InitializePool<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     
+    #[account(
+        seeds = [b"config"],
+        bump = config.bump
+    )]
+    pub config: Account<'info, Config>,
+    
+    /// Pool PDA - Anchor's `init` constraint automatically prevents duplicate pools
+    /// If a pool already exists for this token pair, the transaction will fail
     #[account(
         init,
         payer = payer,

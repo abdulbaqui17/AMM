@@ -13,6 +13,10 @@ use instructions::*;
 pub mod amm {
     use super::*;
 
+    pub fn initialize_config(ctx: Context<InitializeConfig>) -> Result<()> {
+        instructions::initialize_config::initialize_config(ctx)
+    }
+
     pub fn initialize_pool(ctx: Context<InitializePool>) -> Result<()> {
         instructions::initialize_pool::initialize_pool(ctx)
     }
