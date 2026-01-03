@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, Transaction } from "@solana/web3.js";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
-import { getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { useAmmProgram, getPoolAddress } from "@/lib";
 import { BN } from "@coral-xyz/anchor";
 
@@ -16,7 +16,7 @@ export function RemoveLiquidity({
   tokenMintA,
   tokenMintB,
 }: RemoveLiquidityProps) {
-  const { publicKey } = useWallet();
+  const { publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
   const program = useAmmProgram();
 
@@ -39,19 +39,55 @@ export function RemoveLiquidity({
 
       try {
         setFetchingBalance(true);
-        const mintAPubkey = new PublicKey(tokenMintA);
-        const mintBPubkey = new PublicKey(tokenMintB);
+        
+        // Validate token mint addresses before creating PublicKey instances
+        let mintAPubkey: PublicKey;
+        let mintBPubkey: PublicKey;
+        
+        try {
+          mintAPubkey = new PublicKey(tokenMintA);
+        } catch (err) {
+          setError("Invalid token mint address for Token A");
+          setLpBalance("0");
+          return;
+        }
+        
+        try {
+          mintBPubkey = new PublicKey(tokenMintB);
+        } catch (err) {
+          setError("Invalid token mint address for Token B");
+          setLpBalance("0");
+          return;
+        }
         const [poolPda] = getPoolAddress(mintAPubkey, mintBPubkey);
-        const poolAccount = await program.account.pool.fetch(poolPda);
+        
+        // Fetch pool account (returns null if pool doesn't exist)
+        const poolAccount = await program.account.pool.fetchNullable(poolPda);
+
+        // Handle case where pool doesn't exist yet
+        if (!poolAccount) {
+          setLpBalance("0");
+          setError("Pool not created yet");
+          return;
+        }
 
         const userLp = await getAssociatedTokenAddress(
           poolAccount.lpMint,
           publicKey
         );
 
-        const lpAccountInfo = await connection.getTokenAccountBalance(userLp);
-        setLpBalance(lpAccountInfo.value.uiAmountString || "0");
+        // Check if LP token account exists before fetching balance
+        const lpAccountInfo = await connection.getAccountInfo(userLp);
+        if (!lpAccountInfo) {
+          setLpBalance("0");
+          return;
+        }
+
+        // Fetch LP token balance
+        const lpBalance = await connection.getTokenAccountBalance(userLp);
+        setLpBalance(lpBalance.value.uiAmountString || "0");
       } catch (err) {
+        // Only log unexpected errors
         console.error("Error fetching LP balance:", err);
         setLpBalance("0");
       } finally {
@@ -91,13 +127,35 @@ export function RemoveLiquidity({
       // Parse LP amount (assuming 9 decimals)
       const lpAmountBN = new BN(lpAmountNum * 1e9);
 
+      // Validate token mint addresses before creating PublicKey instances
+      let mintAPubkey: PublicKey;
+      let mintBPubkey: PublicKey;
+      
+      try {
+        mintAPubkey = new PublicKey(tokenMintA);
+      } catch (err) {
+        setError("Invalid token mint address for Token A");
+        return;
+      }
+      
+      try {
+        mintBPubkey = new PublicKey(tokenMintB);
+      } catch (err) {
+        setError("Invalid token mint address for Token B");
+        return;
+      }
+
       // Derive pool PDA
-      const mintAPubkey = new PublicKey(tokenMintA);
-      const mintBPubkey = new PublicKey(tokenMintB);
       const [poolPda] = getPoolAddress(mintAPubkey, mintBPubkey);
 
-      // Fetch pool account
-      const poolAccount = await program.account.pool.fetch(poolPda);
+      // Fetch pool account (returns null if pool doesn't exist)
+      const poolAccount = await program.account.pool.fetchNullable(poolPda);
+      
+      // Handle case where pool doesn't exist
+      if (!poolAccount) {
+        setError("Pool not created yet");
+        return;
+      }
 
       // Get user's token accounts
       const userTokenA = await getAssociatedTokenAddress(
@@ -112,6 +170,57 @@ export function RemoveLiquidity({
         poolAccount.lpMint,
         publicKey
       );
+
+      // Check if token accounts exist, create if missing
+      const accountAInfo = await connection.getAccountInfo(userTokenA);
+      const accountBInfo = await connection.getAccountInfo(userTokenB);
+      
+      if (!accountAInfo || !accountBInfo) {
+        console.log("Creating missing token accounts...");
+        if (!signTransaction) {
+          throw new Error("Wallet does not support signing");
+        }
+        
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+        const createAtaTx = new Transaction({
+          feePayer: publicKey,
+          blockhash,
+          lastValidBlockHeight,
+        });
+        
+        if (!accountAInfo) {
+          createAtaTx.add(
+            createAssociatedTokenAccountInstruction(
+              publicKey,
+              userTokenA,
+              publicKey,
+              mintAPubkey,
+              TOKEN_PROGRAM_ID
+            )
+          );
+        }
+        
+        if (!accountBInfo) {
+          createAtaTx.add(
+            createAssociatedTokenAccountInstruction(
+              publicKey,
+              userTokenB,
+              publicKey,
+              mintBPubkey,
+              TOKEN_PROGRAM_ID
+            )
+          );
+        }
+        
+        const signed = await signTransaction(createAtaTx);
+        const createAtaSig = await connection.sendRawTransaction(signed.serialize());
+        await connection.confirmTransaction({
+          signature: createAtaSig,
+          blockhash,
+          lastValidBlockHeight,
+        });
+        console.log("Token accounts created:", createAtaSig);
+      }
 
       // Get balances before
       const vaultABefore = await connection.getTokenAccountBalance(
@@ -158,8 +267,13 @@ export function RemoveLiquidity({
       setLpAmount("");
 
       // Refresh LP balance
-      const updatedLpBalance = await connection.getTokenAccountBalance(userLp);
-      setLpBalance(updatedLpBalance.value.uiAmountString || "0");
+      try {
+        const updatedLpBalance = await connection.getTokenAccountBalance(userLp);
+        setLpBalance(updatedLpBalance.value.uiAmountString || "0");
+      } catch (refreshErr) {
+        // If balance refresh fails, set to 0 (shouldn't happen after successful tx)
+        setLpBalance("0");
+      }
     } catch (err: any) {
       console.error("Error removing liquidity:", err);
       setError(err.message || "Failed to remove liquidity");
