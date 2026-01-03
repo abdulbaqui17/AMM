@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PublicKey, Transaction } from "@solana/web3.js";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, TOKEN_PROGRAM_ID } from "@solana/spl-token";
@@ -14,6 +14,17 @@ interface SwapProps {
 
 type SwapDirection = "AtoB" | "BtoA";
 
+// Helper function to validate PublicKey
+function isValidPublicKey(address: string): boolean {
+  if (!address || address.trim() === "") return false;
+  try {
+    new PublicKey(address);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function Swap({ tokenMintA, tokenMintB }: SwapProps) {
   const { publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
@@ -23,26 +34,99 @@ export function Swap({ tokenMintA, tokenMintB }: SwapProps) {
   const [amountIn, setAmountIn] = useState("");
   const [minAmountOut, setMinAmountOut] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingPool, setCheckingPool] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [txSignature, setTxSignature] = useState("");
+  const [poolExists, setPoolExists] = useState<boolean | null>(null);
+  const [poolHasLiquidity, setPoolHasLiquidity] = useState<boolean | null>(null);
+
+  // Validate mint addresses and check pool status
+  useEffect(() => {
+    async function checkPoolStatus() {
+      if (!program) return;
+
+      setPoolExists(null);
+      setPoolHasLiquidity(null);
+      setError("");
+
+      const mintAValid = isValidPublicKey(tokenMintA);
+      const mintBValid = isValidPublicKey(tokenMintB);
+
+      if (!mintAValid || !mintBValid) {
+        setError("Invalid token address");
+        return;
+      }
+
+      if (tokenMintA === tokenMintB) {
+        setError("Cannot swap identical tokens");
+        return;
+      }
+
+      try {
+        setCheckingPool(true);
+        const mintAPubkey = new PublicKey(tokenMintA);
+        const mintBPubkey = new PublicKey(tokenMintB);
+        const [poolPda] = getPoolAddress(mintAPubkey, mintBPubkey);
+
+        const poolAccount = await program.account.pool.fetchNullable(poolPda);
+        
+        if (!poolAccount) {
+          setPoolExists(false);
+          setError("This pool does not exist yet");
+          return;
+        }
+
+        setPoolExists(true);
+
+        const vaultA = await connection.getTokenAccountBalance(poolAccount.vaultA);
+        const vaultB = await connection.getTokenAccountBalance(poolAccount.vaultB);
+        
+        const hasLiquidity = 
+          BigInt(vaultA.value.amount) > 0n && 
+          BigInt(vaultB.value.amount) > 0n;
+
+        setPoolHasLiquidity(hasLiquidity);
+        
+        if (!hasLiquidity) {
+          setError("This pool has no liquidity");
+        }
+      } catch (err) {
+        console.error("Error checking pool:", err);
+        setError("Unable to check pool status");
+      } finally {
+        setCheckingPool(false);
+      }
+    }
+
+    checkPoolStatus();
+  }, [program, connection, tokenMintA, tokenMintB]);
 
   const toggleDirection = () => {
     setDirection(direction === "AtoB" ? "BtoA" : "AtoB");
-    setAmountIn("");
-    setMinAmountOut("");
+  };
+
+  // Get button state and text
+  const getButtonState = () => {
+    if (!publicKey) return { disabled: true, text: "Connect Wallet" };
+    if (checkingPool) return { disabled: true, text: "Checking Pool..." };
+    if (!isValidPublicKey(tokenMintA) || !isValidPublicKey(tokenMintB)) {
+      return { disabled: true, text: "Invalid Token Address" };
+    }
+    if (tokenMintA === tokenMintB) {
+      return { disabled: true, text: "Cannot Swap Same Token" };
+    }
+    if (poolExists === false) return { disabled: true, text: "Pool Does Not Exist" };
+    if (poolHasLiquidity === false) return { disabled: true, text: "No Liquidity Available" };
+    if (!amountIn || parseFloat(amountIn) <= 0) {
+      return { disabled: true, text: "Enter Amount" };
+    }
+    if (loading) return { disabled: true, text: "Swapping..." };
+    return { disabled: false, text: "Swap" };
   };
 
   const handleSwap = async () => {
-    if (!program || !publicKey) {
-      setError("Please connect your wallet");
-      return;
-    }
-
-    if (!amountIn) {
-      setError("Please enter amount");
-      return;
-    }
+    if (!program || !publicKey) return;
 
     try {
       setLoading(true);
@@ -63,14 +147,14 @@ export function Swap({ tokenMintA, tokenMintB }: SwapProps) {
       try {
         mintAPubkey = new PublicKey(tokenMintA);
       } catch (err) {
-        setError("Invalid token mint address for Token A");
+        setError("Invalid token address for Token A");
         return;
       }
       
       try {
         mintBPubkey = new PublicKey(tokenMintB);
       } catch (err) {
-        setError("Invalid token mint address for Token B");
+        setError("Invalid token address for Token B");
         return;
       }
 
@@ -149,15 +233,22 @@ export function Swap({ tokenMintA, tokenMintB }: SwapProps) {
     } catch (err: any) {
       console.error("Error swapping:", err);
       
-      // Check for slippage error
+      // User-friendly error messages
+      let friendlyError = "Swap failed. Please try again.";
+      
       if (err.message?.includes("SlippageExceeded") || err.message?.includes("6004")) {
-        setError(
-          `Slippage tolerance exceeded! The minimum output you set (${minAmountOut || '0'}) is higher than what the pool can provide. ` +
-          `Try: (1) Leave minimum output empty, or (2) Set a lower minimum amount, or (3) Reduce your swap amount.`
-        );
-      } else {
-        setError(err.message || "Failed to swap");
+        friendlyError = "Price moved unfavorably. Try increasing slippage tolerance or reducing amount.";
+      } else if (err.message?.includes("InsufficientLiquidity") || err.message?.includes("6003")) {
+        friendlyError = "Not enough liquidity in pool for this swap size.";
+      } else if (err.message?.includes("PoolNotReady") || err.message?.includes("6010")) {
+        friendlyError = "Pool has no liquidity available.";
+      } else if (err.message?.includes("insufficient funds")) {
+        friendlyError = "Insufficient token balance in your wallet.";
+      } else if (err.message?.includes("User rejected")) {
+        friendlyError = "Transaction was cancelled.";
       }
+      
+      setError(friendlyError);
     } finally {
       setLoading(false);
     }
@@ -165,198 +256,145 @@ export function Swap({ tokenMintA, tokenMintB }: SwapProps) {
 
   if (!publicKey) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
-        <p className="text-sm text-yellow-800">
-          Connect your wallet to swap tokens
-        </p>
+      <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-8 text-center">
+        <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+          <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <p className="text-lg font-semibold text-gray-900 mb-2">Wallet Required</p>
+        <p className="text-sm text-gray-600">Connect your wallet to start swapping tokens</p>
       </div>
     );
   }
 
   const inputToken = direction === "AtoB" ? "Token A" : "Token B";
   const outputToken = direction === "AtoB" ? "Token B" : "Token A";
+  const buttonState = getButtonState();
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-6">Swap Tokens</h3>
+    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm">
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-gray-200">
+        <h3 className="text-xl font-bold text-gray-900">Swap</h3>
+      </div>
 
-      {/* Success Message */}
-      {success && (
-        <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4">
-          <div className="flex items-start gap-3">
-            <svg
-              className="w-5 h-5 text-green-600 mt-0.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-green-900 mb-1">
-                Swap Successful!
-              </p>
-              <p className="text-xs text-green-700 font-mono break-all">
-                {txSignature}
-              </p>
-              <a
-                href={`https://explorer.solana.com/tx/${txSignature}?cluster=devnet`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-green-600 hover:text-green-800 underline mt-2 inline-block"
-              >
-                View on Explorer →
-              </a>
+      <div className="p-6">
+        {/* Success Message */}
+        {success && (
+          <div className="mb-4 bg-green-50 border border-green-200 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-green-900">Swap Successful!</p>
+                <a
+                  href={`https://explorer.solana.com/tx/${txSignature}?cluster=devnet`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-green-700 hover:text-green-800 underline break-all"
+                >
+                  View transaction
+                </a>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Error Message */}
-      {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
-          <div className="flex items-start gap-3">
-            <svg
-              className="w-5 h-5 text-red-600 mt-0.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <div>
-              <p className="text-sm font-semibold text-red-900 mb-1">
-                Swap Failed
-              </p>
-              <p className="text-sm text-red-700">{error}</p>
+        {/* Error Message */}
+        {error && !checkingPool && (
+          <div className="mb-4 bg-red-50 border border-red-200 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <svg className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-sm text-red-800">{error}</p>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Swap Interface */}
-      <div className="space-y-4">
-        {/* From */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            From ({inputToken})
-          </label>
-          <input
-            type="number"
-            value={amountIn}
-            onChange={(e) => setAmountIn(e.target.value)}
-            placeholder="0.0"
-            disabled={loading}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-          />
-          <p className="text-xs text-gray-500 mt-1">Amount to swap</p>
-        </div>
+        {/* Swap Interface */}
+        <div className="space-y-2">
+          {/* From */}
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-medium text-gray-500 uppercase">You Pay</label>
+              <span className="text-xs text-gray-500">{inputToken}</span>
+            </div>
+            <input
+              type="number"
+              value={amountIn}
+              onChange={(e) => setAmountIn(e.target.value)}
+              placeholder="0.0"
+              disabled={loading || !poolExists || !poolHasLiquidity}
+              className="w-full text-3xl font-semibold bg-transparent border-none outline-none placeholder-gray-300 disabled:opacity-50"
+            />
+          </div>
 
-        {/* Swap Direction Button */}
-        <div className="flex justify-center">
-          <button
-            onClick={toggleDirection}
-            disabled={loading}
-            className="p-3 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <svg
-              className="w-6 h-6 text-gray-700"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          {/* Swap Direction Button */}
+          <div className="flex justify-center -my-2 relative z-10">
+            <button
+              onClick={toggleDirection}
+              disabled={loading || !poolExists}
+              className="p-2 bg-white border-4 border-gray-100 rounded-xl hover:border-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+              title="Switch tokens"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
-              />
-            </svg>
-          </button>
-        </div>
+              <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+              </svg>
+            </button>
+          </div>
 
-        {/* To */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            To ({outputToken})
-          </label>
-          <input
-            type="number"
-            value={minAmountOut}
-            onChange={(e) => setMinAmountOut(e.target.value)}
-            placeholder="0 (leave empty to accept any amount)"
-            disabled={loading}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Minimum amount to receive - leave empty to disable slippage protection
-          </p>
-        </div>
-
-        {/* Swap Direction Display */}
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="flex items-center justify-center gap-2 text-sm font-medium text-blue-900">
-            <span>{inputToken}</span>
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M14 5l7 7m0 0l-7 7m7-7H3"
-              />
-            </svg>
-            <span>{outputToken}</span>
+          {/* To */}
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-medium text-gray-500 uppercase">You Receive (min)</label>
+              <span className="text-xs text-gray-500">{outputToken}</span>
+            </div>
+            <input
+              type="number"
+              value={minAmountOut}
+              onChange={(e) => setMinAmountOut(e.target.value)}
+              placeholder="0.0"
+              disabled={loading || !poolExists || !poolHasLiquidity}
+              className="w-full text-3xl font-semibold bg-transparent border-none outline-none placeholder-gray-300 disabled:opacity-50"
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              Optional: Set minimum to receive
+            </p>
           </div>
         </div>
+
+        {/* Pool Status Info */}
+        {checkingPool && (
+          <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500">
+            <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+            <span>Checking pool status...</span>
+          </div>
+        )}
 
         {/* Swap Button */}
         <button
           onClick={handleSwap}
-          disabled={loading || !amountIn}
-          className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+          disabled={buttonState.disabled}
+          className="w-full mt-4 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-lg"
         >
-          {loading ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Swapping...</span>
-            </>
-          ) : (
-            <span>Swap</span>
-          )}
+          {buttonState.text}
         </button>
-      </div>
 
-      {/* Info Box */}
-      <div className="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-        <p className="text-xs text-purple-800 mb-2">
-          <strong>💡 How to use minimum output:</strong>
-        </p>
-        <ul className="text-xs text-purple-700 space-y-1 ml-4">
-          <li>• <strong>Leave empty (0)</strong> - Accept any output (recommended for testing)</li>
-          <li>• <strong>Set a value</strong> - Transaction fails if output is less than this</li>
-          <li>• <strong>Slippage protection</strong> - Protects you from unfavorable price changes</li>
-        </ul>
-        <p className="text-xs text-purple-800 mt-2">
-          <strong>Note:</strong> The swap executes at the current pool ratio with a 0.3% fee.
-          Large swaps have higher price impact.
-        </p>
+        {/* Helper Info */}
+        {poolExists && poolHasLiquidity && (
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+            <p className="text-xs text-blue-800">
+              <span className="font-semibold">💡 Tip:</span> Leave minimum output empty to accept any amount. 
+              Setting a minimum protects against price changes but may cause the swap to fail.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
 }
-
