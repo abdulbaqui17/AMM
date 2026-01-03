@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import Link from "next/link";
 import { WalletButton } from "./components/WalletButton";
-import { useAmmProgram, PROGRAM_ID } from "@/lib";
+import { ProgramStatus } from "./components/ProgramStatus";
+import { useAmmProgram, useIsAdmin, PROGRAM_ID } from "@/lib";
 
 export default function Home() {
   const { publicKey, connected } = useWallet();
   const program = useAmmProgram();
+  const { isAdmin } = useIsAdmin();
   const [mounted, setMounted] = useState(false);
 
   // Prevent hydration mismatch by only rendering wallet-dependent content after mount
@@ -104,6 +106,10 @@ export default function Home() {
                       </p>
                     </div>
                   )}
+                  {/* Optional: Display program verification status */}
+                  <div className="max-w-md mx-auto">
+                    <ProgramStatus />
+                  </div>
                   <div className="flex flex-col sm:flex-row justify-center gap-4">
                     <Link
                       href="/swap"
@@ -129,6 +135,28 @@ export default function Home() {
                     >
                       View Pool Info
                     </Link>
+                    {/* Admin-only: Create Pool */}
+                    {isAdmin && (
+                      <Link
+                        href="/pool/create"
+                        className="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-semibold rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-colors text-center flex items-center gap-2"
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                          />
+                        </svg>
+                        Create Pool (Admin)
+                      </Link>
+                    )}
                   </div>
                   <div className="flex justify-center gap-4 mt-4">
                     <div className="px-6 py-3 bg-gray-100 rounded-lg">
