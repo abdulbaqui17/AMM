@@ -4,7 +4,7 @@ import { useState } from "react";
 import { PoolInfo } from "../components/PoolInfo";
 
 export default function PoolPage() {
-  // Example token mints (replace with actual mints from your localnet)
+  // Token mints for devnet pool lookup
   const [tokenMintA, setTokenMintA] = useState("");
   const [tokenMintB, setTokenMintB] = useState("");
   const [showPool, setShowPool] = useState(false);

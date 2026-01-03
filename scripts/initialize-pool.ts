@@ -14,7 +14,8 @@ import * as fs from "fs";
 const idl = JSON.parse(fs.readFileSync("./target/idl/amm.json", "utf-8"));
 
 async function main() {
-  // Configure the client to use devnet
+  // Connected to Solana Devnet
+  // Program ID: GusCwDKH6aEkejKcGKDoVpRaeYPBRHwxn1k5kGFK4Guu
   const connection = new anchor.web3.Connection(
     "https://api.devnet.solana.com",
     "confirmed"

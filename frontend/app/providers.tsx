@@ -16,10 +16,11 @@ import "@solana/wallet-adapter-react-ui/styles.css";
 export const WalletContextProvider: FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  // Use devnet for development
+  // Connected to Solana Devnet (program deployed on devnet)
+  // Program ID: GusCwDKH6aEkejKcGKDoVpRaeYPBRHwxn1k5kGFK4Guu
   const network = WalletAdapterNetwork.Devnet;
   const endpoint = useMemo(() => {
-    // Use devnet RPC endpoint
+    // Devnet RPC: https://api.devnet.solana.com
     return clusterApiUrl(network);
   }, [network]);
 
