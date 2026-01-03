@@ -39,14 +39,39 @@ export function PoolInfo({ tokenMintA, tokenMintB }: PoolInfoProps) {
         setLoading(true);
         setError("");
 
+        // Validate token mint addresses before creating PublicKey instances
+        let mintAPubkey: PublicKey;
+        let mintBPubkey: PublicKey;
+        
+        try {
+          mintAPubkey = new PublicKey(tokenMintA);
+        } catch (err) {
+          setError("Invalid token mint address for Token A");
+          setPoolData(null);
+          return;
+        }
+        
+        try {
+          mintBPubkey = new PublicKey(tokenMintB);
+        } catch (err) {
+          setError("Invalid token mint address for Token B");
+          setPoolData(null);
+          return;
+        }
+
         // Derive pool PDA
-        const mintAPubkey = new PublicKey(tokenMintA);
-        const mintBPubkey = new PublicKey(tokenMintB);
         const [poolPda] = getPoolAddress(mintAPubkey, mintBPubkey);
         setPoolAddress(poolPda.toBase58());
 
-        // Fetch pool account
-        const poolAccount = await program.account.pool.fetch(poolPda);
+        // Fetch pool account (returns null if account doesn't exist)
+        const poolAccount = await program.account.pool.fetchNullable(poolPda);
+
+        // Handle case where pool doesn't exist yet
+        if (!poolAccount) {
+          setPoolData(null);
+          setError("");
+          return;
+        }
 
         // Set pool data
         setPoolData({
@@ -58,13 +83,10 @@ export function PoolInfo({ tokenMintA, tokenMintB }: PoolInfoProps) {
           feeBps: poolAccount.feeBps,
           bump: poolAccount.bump,
         });
+        setError("");
       } catch (err: any) {
         console.error("Error fetching pool:", err);
-        if (err.message?.includes("Account does not exist")) {
-          setError("Pool does not exist for these token mints");
-        } else {
-          setError(err.message || "Failed to fetch pool data");
-        }
+        setError(err.message || "Failed to fetch pool data");
         setPoolData(null);
       } finally {
         setLoading(false);
@@ -124,7 +146,33 @@ export function PoolInfo({ tokenMintA, tokenMintB }: PoolInfoProps) {
   }
 
   if (!poolData) {
-    return null;
+    return (
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+        <div className="flex items-start gap-3">
+          <svg
+            className="w-5 h-5 text-blue-600 mt-0.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <div>
+            <p className="text-sm font-semibold text-blue-900 mb-1">
+              Pool Not Created Yet
+            </p>
+            <p className="text-sm text-blue-700">
+              This liquidity pool has not been created by an administrator.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
