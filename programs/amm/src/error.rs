@@ -18,5 +18,11 @@ pub enum AmmError {
     InvalidVault,
     #[msg("Invalid LP mint")]
     InvalidLpMint,
+    #[msg("Unauthorized: only admin can perform this action")]
+    Unauthorized,
+    #[msg("Pool already exists for this token pair")]
+    PoolAlreadyExists,
+    #[msg("Pool not ready: reserves must be greater than zero")]
+    PoolNotReady,
 }
 
