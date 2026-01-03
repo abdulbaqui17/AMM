@@ -156,8 +156,8 @@ export function AddLiquidity({
 
   if (!publicKey) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
-        <p className="text-sm text-yellow-800">
+      <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6">
+        <p className="text-sm text-blue-200">
           Connect your wallet to add liquidity
         </p>
       </div>
@@ -165,17 +165,17 @@ export function AddLiquidity({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-6">
+    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+      <h3 className="text-lg font-semibold text-white mb-6">
         Add Liquidity
       </h3>
 
       {/* Success Message */}
       {success && (
-        <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4">
+        <div className="mb-6 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4">
           <div className="flex items-start gap-3">
             <svg
-              className="w-5 h-5 text-green-600 mt-0.5"
+              className="w-5 h-5 text-emerald-400 mt-0.5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -188,17 +188,17 @@ export function AddLiquidity({
               />
             </svg>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-green-900 mb-1">
+              <p className="text-sm font-semibold text-emerald-400 mb-1">
                 Liquidity Added Successfully!
               </p>
-              <p className="text-xs text-green-700 font-mono break-all">
+              <p className="text-xs text-emerald-300 font-mono break-all">
                 {txSignature}
               </p>
               <a
                 href={`https://explorer.solana.com/tx/${txSignature}?cluster=devnet`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-green-600 hover:text-green-800 underline mt-2 inline-block"
+                className="text-xs text-emerald-400 hover:text-emerald-300 underline mt-2 inline-block"
               >
                 View on Explorer →
               </a>
@@ -209,10 +209,10 @@ export function AddLiquidity({
 
       {/* Error Message */}
       {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+        <div className="mb-6 bg-red-500/10 border border-red-500/20 rounded-xl p-4">
           <div className="flex items-start gap-3">
             <svg
-              className="w-5 h-5 text-red-600 mt-0.5"
+              className="w-5 h-5 text-red-400 mt-0.5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -225,10 +225,10 @@ export function AddLiquidity({
               />
             </svg>
             <div>
-              <p className="text-sm font-semibold text-red-900 mb-1">
+              <p className="text-sm font-semibold text-red-400 mb-1">
                 Transaction Failed
               </p>
-              <p className="text-sm text-red-700">{error}</p>
+              <p className="text-sm text-red-300">{error}</p>
             </div>
           </div>
         </div>
@@ -240,7 +240,7 @@ export function AddLiquidity({
         <div>
           <label
             htmlFor="amountA"
-            className="block text-sm font-medium text-gray-700 mb-2"
+            className="block text-sm font-medium text-gray-300 mb-2"
           >
             Amount A
           </label>
@@ -251,16 +251,16 @@ export function AddLiquidity({
             onChange={(e) => setAmountA(e.target.value)}
             placeholder="0.0"
             disabled={loading}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
           />
-          <p className="text-xs text-gray-500 mt-1">Token A to deposit</p>
+          <p className="text-xs text-gray-400 mt-1">Token A to deposit</p>
         </div>
 
         {/* Amount B */}
         <div>
           <label
             htmlFor="amountB"
-            className="block text-sm font-medium text-gray-700 mb-2"
+            className="block text-sm font-medium text-gray-300 mb-2"
           >
             Amount B
           </label>
@@ -271,16 +271,16 @@ export function AddLiquidity({
             onChange={(e) => setAmountB(e.target.value)}
             placeholder="0.0"
             disabled={loading}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
           />
-          <p className="text-xs text-gray-500 mt-1">Token B to deposit</p>
+          <p className="text-xs text-gray-400 mt-1">Token B to deposit</p>
         </div>
 
         {/* Pool Address Display */}
         {poolAddress && (
-          <div className="p-3 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-500 mb-1">Pool Address</p>
-            <p className="text-xs font-mono text-gray-700 break-all">
+          <div className="p-3 bg-gray-900/50 border border-gray-600 rounded-lg">
+            <p className="text-xs text-gray-400 mb-1">Pool Address</p>
+            <p className="text-xs font-mono text-gray-300 break-all">
               {poolAddress}
             </p>
           </div>
@@ -290,7 +290,7 @@ export function AddLiquidity({
         <button
           onClick={handleAddLiquidity}
           disabled={loading || !amountA || !amountB}
-          className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+          className="w-full py-3 bg-gradient-to-r from-blue-600 to-emerald-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
         >
           {loading ? (
             <>
@@ -304,8 +304,8 @@ export function AddLiquidity({
       </div>
 
       {/* Info Box */}
-      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-xs text-blue-800">
+      <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+        <p className="text-xs text-blue-300">
           <strong>Note:</strong> The program will automatically calculate the
           optimal deposit amounts based on the current pool ratio. You may
           receive slightly different LP tokens than expected.

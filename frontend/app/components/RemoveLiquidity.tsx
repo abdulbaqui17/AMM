@@ -288,8 +288,8 @@ export function RemoveLiquidity({
 
   if (!publicKey) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
-        <p className="text-sm text-yellow-800">
+      <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6">
+        <p className="text-sm text-blue-200">
           Connect your wallet to remove liquidity
         </p>
       </div>
@@ -297,17 +297,17 @@ export function RemoveLiquidity({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-6">
+    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+      <h3 className="text-lg font-semibold text-white mb-6">
         Remove Liquidity
       </h3>
 
       {/* Success Message */}
       {success && withdrawnAmounts && (
-        <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4">
+        <div className="mb-6 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4">
           <div className="flex items-start gap-3">
             <svg
-              className="w-5 h-5 text-green-600 mt-0.5"
+              className="w-5 h-5 text-emerald-400 mt-0.5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -320,10 +320,10 @@ export function RemoveLiquidity({
               />
             </svg>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-green-900 mb-2">
+              <p className="text-sm font-semibold text-emerald-400 mb-2">
                 Liquidity Removed Successfully!
               </p>
-              <div className="text-xs text-green-700 space-y-1 mb-2">
+              <div className="text-xs text-emerald-300 space-y-1 mb-2">
                 <p>
                   <strong>Withdrawn Token A:</strong> {withdrawnAmounts.amountA}
                 </p>
@@ -331,14 +331,14 @@ export function RemoveLiquidity({
                   <strong>Withdrawn Token B:</strong> {withdrawnAmounts.amountB}
                 </p>
               </div>
-              <p className="text-xs text-green-700 font-mono break-all mb-2">
+              <p className="text-xs text-emerald-300 font-mono break-all mb-2">
                 {txSignature}
               </p>
               <a
                 href={`https://explorer.solana.com/tx/${txSignature}?cluster=devnet`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-green-600 hover:text-green-800 underline inline-block"
+                className="text-xs text-emerald-400 hover:text-emerald-300 underline inline-block"
               >
                 View on Explorer →
               </a>
@@ -349,10 +349,10 @@ export function RemoveLiquidity({
 
       {/* Error Message */}
       {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+        <div className="mb-6 bg-red-500/10 border border-red-500/20 rounded-xl p-4">
           <div className="flex items-start gap-3">
             <svg
-              className="w-5 h-5 text-red-600 mt-0.5"
+              className="w-5 h-5 text-red-400 mt-0.5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -365,25 +365,25 @@ export function RemoveLiquidity({
               />
             </svg>
             <div>
-              <p className="text-sm font-semibold text-red-900 mb-1">
+              <p className="text-sm font-semibold text-red-400 mb-1">
                 Transaction Failed
               </p>
-              <p className="text-sm text-red-700">{error}</p>
+              <p className="text-sm text-red-300">{error}</p>
             </div>
           </div>
         </div>
       )}
 
       {/* LP Balance Display */}
-      <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+      <div className="mb-6 p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-purple-900">
+          <span className="text-sm font-medium text-orange-300">
             Your LP Token Balance
           </span>
           {fetchingBalance ? (
-            <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-4 h-4 border-2 border-orange-400 border-t-transparent rounded-full animate-spin"></div>
           ) : (
-            <span className="text-lg font-bold text-purple-900">{lpBalance}</span>
+            <span className="text-lg font-bold text-orange-400">{lpBalance}</span>
           )}
         </div>
       </div>
@@ -395,14 +395,14 @@ export function RemoveLiquidity({
           <div className="flex items-center justify-between mb-2">
             <label
               htmlFor="lpAmount"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-gray-300"
             >
               LP Tokens to Burn
             </label>
             <button
               onClick={setMaxLpAmount}
               disabled={loading || fetchingBalance}
-              className="text-xs font-medium text-purple-600 hover:text-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-xs font-medium text-orange-400 hover:text-orange-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               MAX
             </button>
@@ -415,9 +415,9 @@ export function RemoveLiquidity({
             placeholder="0.0"
             disabled={loading}
             max={lpBalance}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-400 mt-1">
             LP tokens to burn (you have {lpBalance})
           </p>
         </div>
@@ -426,7 +426,7 @@ export function RemoveLiquidity({
         <button
           onClick={handleRemoveLiquidity}
           disabled={loading || !lpAmount || fetchingBalance}
-          className="w-full py-3 bg-gradient-to-r from-red-600 to-pink-600 text-white font-semibold rounded-lg hover:from-red-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+          className="w-full py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-lg hover:from-orange-700 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
         >
           {loading ? (
             <>
@@ -440,11 +440,11 @@ export function RemoveLiquidity({
       </div>
 
       {/* Info Box */}
-      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-xs text-blue-800 mb-2">
+      <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+        <p className="text-xs text-blue-300 mb-2">
           <strong>ℹ️ How it works:</strong>
         </p>
-        <ul className="text-xs text-blue-700 space-y-1 ml-4">
+        <ul className="text-xs text-blue-300 space-y-1 ml-4">
           <li>• Burn your LP tokens</li>
           <li>• Receive proportional share of Token A and Token B</li>
           <li>• Your share includes any fees earned</li>

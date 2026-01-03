@@ -83,8 +83,8 @@ export function Swap({ tokenMintA, tokenMintB }: SwapProps) {
         const vaultB = await connection.getTokenAccountBalance(poolAccount.vaultB);
         
         const hasLiquidity = 
-          BigInt(vaultA.value.amount) > 0n && 
-          BigInt(vaultB.value.amount) > 0n;
+          Number(vaultA.value.amount) > 0 && 
+          Number(vaultB.value.amount) > 0;
 
         setPoolHasLiquidity(hasLiquidity);
         
