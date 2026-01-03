@@ -50,9 +50,25 @@ export function AddLiquidity({
       const amountABN = new BN(parseFloat(amountA) * 1e9);
       const amountBBN = new BN(parseFloat(amountB) * 1e9);
 
+      // Validate token mint addresses before creating PublicKey instances
+      let mintAPubkey: PublicKey;
+      let mintBPubkey: PublicKey;
+      
+      try {
+        mintAPubkey = new PublicKey(tokenMintA);
+      } catch (err) {
+        setError("Invalid token mint address for Token A");
+        return;
+      }
+      
+      try {
+        mintBPubkey = new PublicKey(tokenMintB);
+      } catch (err) {
+        setError("Invalid token mint address for Token B");
+        return;
+      }
+
       // Derive pool PDA
-      const mintAPubkey = new PublicKey(tokenMintA);
-      const mintBPubkey = new PublicKey(tokenMintB);
       const [poolPda] = getPoolAddress(mintAPubkey, mintBPubkey);
 
       // Fetch pool account to get vault and LP mint addresses

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, Transaction } from "@solana/web3.js";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
-import { getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { useAmmProgram, getPoolAddress } from "@/lib";
 import { BN } from "@coral-xyz/anchor";
 
@@ -15,7 +15,7 @@ interface SwapProps {
 type SwapDirection = "AtoB" | "BtoA";
 
 export function Swap({ tokenMintA, tokenMintB }: SwapProps) {
-  const { publicKey } = useWallet();
+  const { publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
   const program = useAmmProgram();
 
@@ -56,9 +56,25 @@ export function Swap({ tokenMintA, tokenMintB }: SwapProps) {
         minAmountOut ? parseFloat(minAmountOut) * 1e9 : 0
       );
 
+      // Validate token mint addresses before creating PublicKey instances
+      let mintAPubkey: PublicKey;
+      let mintBPubkey: PublicKey;
+      
+      try {
+        mintAPubkey = new PublicKey(tokenMintA);
+      } catch (err) {
+        setError("Invalid token mint address for Token A");
+        return;
+      }
+      
+      try {
+        mintBPubkey = new PublicKey(tokenMintB);
+      } catch (err) {
+        setError("Invalid token mint address for Token B");
+        return;
+      }
+
       // Derive pool PDA
-      const mintAPubkey = new PublicKey(tokenMintA);
-      const mintBPubkey = new PublicKey(tokenMintB);
       const [poolPda] = getPoolAddress(mintAPubkey, mintBPubkey);
 
       // Fetch pool account
@@ -72,6 +88,39 @@ export function Swap({ tokenMintA, tokenMintB }: SwapProps) {
       // Get user's token accounts
       const userInput = await getAssociatedTokenAddress(inputMint, publicKey);
       const userOutput = await getAssociatedTokenAddress(outputMint, publicKey);
+
+      // Check if output token account exists, if not create it
+      const outputAccountInfo = await connection.getAccountInfo(userOutput);
+      if (!outputAccountInfo) {
+        console.log("Creating output token account...");
+        if (!signTransaction) {
+          throw new Error("Wallet does not support signing");
+        }
+        
+        const createAtaIx = createAssociatedTokenAccountInstruction(
+          publicKey,
+          userOutput,
+          publicKey,
+          outputMint,
+          TOKEN_PROGRAM_ID
+        );
+        
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+        const createAtaTx = new Transaction({
+          feePayer: publicKey,
+          blockhash,
+          lastValidBlockHeight,
+        }).add(createAtaIx);
+        
+        const signed = await signTransaction(createAtaTx);
+        const createAtaSig = await connection.sendRawTransaction(signed.serialize());
+        await connection.confirmTransaction({
+          signature: createAtaSig,
+          blockhash,
+          lastValidBlockHeight,
+        });
+        console.log("Output token account created:", createAtaSig);
+      }
 
       // Get vault addresses
       const vaultInput = isAtoB ? poolAccount.vaultA : poolAccount.vaultB;
